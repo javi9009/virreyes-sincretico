@@ -28,6 +28,8 @@
  .qty button{width:30px;height:30px;border-radius:8px;border:1px solid var(--verde);background:#fff;color:var(--verde);
    font-size:18px;font-weight:700;cursor:pointer;line-height:1}
  .qty span{font-weight:700;min-width:18px;text-align:center}
+ .note{background:#fff;border:1px solid var(--oro);color:var(--verde2);border-radius:8px;padding:0 10px;height:30px;font-size:12px;font-weight:700;cursor:pointer}
+ .notetxt{font-size:11px;color:#7a5e22;margin-top:5px;font-style:italic}
  .fab{position:fixed;left:50%;transform:translateX(-50%);bottom:14px;width:92%;max-width:460px;
    background:var(--verde);color:var(--crema);border:2px solid var(--oro);border-radius:14px;padding:13px 18px;
    display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-weight:700;box-shadow:0 4px 14px rgba(0,0,0,.25)}
@@ -48,7 +50,7 @@
    <a href="./" class="back">← Volver a Ateneo de Virreyes</a>
    <div class="serif lg">CUMBRE</div>
    <div class="sub">Cafetería de Montaña · CDMX</div>
-   <div class="hr">Servicio a habitación: 9:00 – 18:00 h</div>
+   <div style="font-size:10px;color:#bcd3c0;margin-top:4px;letter-spacing:.02em">Servicio a habitación · 9:00 – 18:00 h</div>
  </header>
  <div id="menu"></div>
 </div>
@@ -105,9 +107,10 @@ function render(){
    cart[i]=cart[i]||{name:nm,price:pr,qty:0};});});
  m.innerHTML=h;updateFab();
 }
-function ctrl(i){const q=cart[i]?cart[i].qty:0;
- return q>0?`<div class="qty"><button onclick="chg('${i}',-1)">−</button><span>${q}</span><button onclick="chg('${i}',1)">+</button></div>`
- :`<button class="add" onclick="chg('${i}',1)">Agregar</button>`;}
+function ctrl(i){const q=cart[i]?cart[i].qty:0;const note=cart[i]&&cart[i].note?cart[i].note:'';
+ if(q>0){return `<div class="qty"><button onclick="chg('${i}',-1)">−</button><span>${q}</span><button onclick="chg('${i}',1)">+</button><button class="note" onclick="addNote('${i}')" title="Agregar comentario">+ nota</button></div>`+(note?`<div class="notetxt">📝 ${note}</div>`:'');}
+ return `<button class="add" onclick="chg('${i}',1)">Agregar</button>`;}
+function addNote(i){const t=prompt('Comentario para '+cart[i].name+' (ej. sin azúcar, extra caliente):',cart[i].note||'');if(t!==null){cart[i].note=t.trim();document.getElementById('ctrl-'+i).innerHTML=ctrl(i);if(document.getElementById('ov').style.display==='flex')drawCart();}}
 function chg(i,d){cart[i].qty=Math.max(0,cart[i].qty+d);document.getElementById('ctrl-'+i).innerHTML=ctrl(i);updateFab();if(document.getElementById('ov').style.display==='flex')drawCart();}
 function items(){return Object.values(cart).filter(x=>x.qty>0);}
 function total(){return items().reduce((s,x)=>s+x.qty*x.price,0);}
@@ -116,7 +119,7 @@ function updateFab(){document.getElementById('fabc').textContent=count();documen
 function openCart(){drawCart();document.getElementById('ov').style.display='flex';}
 function closeCart(){document.getElementById('ov').style.display='none';}
 function drawCart(){
- document.getElementById('lines').innerHTML=items().map(x=>`<div class="line"><span>${x.qty}× ${x.name}</span><span>${money(x.qty*x.price)}</span></div>`).join('')||'<div style="color:#7a5e22">Tu pedido está vacío.</div>';
+ document.getElementById('lines').innerHTML=items().map(x=>`<div class="line"><span>${x.qty}× ${x.name}${x.note?' <span style="color:#7a5e22;font-style:italic">('+x.note+')</span>':''}</span><span>${money(x.qty*x.price)}</span></div>`).join('')||'<div style="color:#7a5e22">Tu pedido está vacío.</div>';
  document.getElementById('ctot').textContent=money(total());
  const ab=abierto();const s=document.getElementById('send');
  s.disabled=!ab||count()===0;
@@ -128,7 +131,7 @@ function enviar(){
  if(!room){alert('Por favor indícanos tu número de habitación.');document.getElementById('room').focus();return;}
  if(count()===0){alert('Tu pedido está vacío.');return;}
  let msg=`🏔️ *Pedido Cafetería Cumbre*\nHabitación: ${room}\n\n`;
- items().forEach(x=>{msg+=`${x.qty}x ${x.name} — ${money(x.qty*x.price)}\n`;});
+ items().forEach(x=>{msg+=`${x.qty}x ${x.name}${x.note?' ('+x.note+')':''} — ${money(x.qty*x.price)}\n`;});
  msg+=`\n*Total: ${money(total())} MXN*`;
  window.open('https://wa.me/'+WA+'?text='+encodeURIComponent(msg),'_blank');
 }
